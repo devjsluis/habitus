@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import { Plus, Settings } from "lucide-react";
+import { Plus, LogOut } from "lucide-react";
 import {
   createHabit,
   deleteHabit,
@@ -134,7 +134,11 @@ function getTimePeriod(time: string | null) {
   return "Noche";
 }
 
-export default function DashboardPage() {
+type Props = {
+  onLogout: () => void;
+};
+
+export default function DashboardPage({ onLogout }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -239,14 +243,16 @@ export default function DashboardPage() {
     <main className="min-h-screen bg-[#111113] text-white px-5 py-8">
       <div className="mx-auto max-w-2xl">
         <header className="mb-8 flex items-center justify-between">
-          <Settings size={32} />
+          <button onClick={openCreateModal}>
+            <Plus size={34} />
+          </button>
 
           <h1 className="text-4xl font-bold">
             Habi<span className="text-purple-500">tus</span>
           </h1>
 
-          <button onClick={openCreateModal}>
-            <Plus size={34} />
+          <button onClick={onLogout}>
+            <LogOut size={34} />
           </button>
         </header>
 
