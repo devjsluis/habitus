@@ -255,7 +255,7 @@ export default function DashboardPage({ onLogout }: Props) {
     .slice(0, iconSearch ? 1200 : 1200);
 
   return (
-    <main className="h-screen overflow-hidden bg-[#111113] text-white">
+    <main className="h-dvh overflow-hidden bg-[#111113] text-white">
       <div className="mx-auto flex h-full max-w-2xl flex-col">
         <div className="shrink-0 px-5 pt-8 pb-4">
           <header className="mb-8 flex items-center justify-between">
@@ -344,7 +344,7 @@ export default function DashboardPage({ onLogout }: Props) {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 pb-6 hide-scrollbar">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 hide-scrollbar">
           {isCreating && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
               <form
