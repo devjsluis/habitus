@@ -26,6 +26,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableHabitCard } from "../components/SortableHabitCard";
+import EmptyHabits from "../components/EmptyHabits";
 
 dayjs.locale("es-mx");
 
@@ -700,6 +701,10 @@ export default function DashboardPage({ onLogout }: Props) {
                           </div>
                         </SortableHabitCard>
                       ))}
+
+                      {weekHabits.length === 0 && (
+                        <EmptyHabits message="No hay ningún hábito registrado." />
+                      )}
                     </div>
                   </SortableContext>
                 </DndContext>
@@ -788,6 +793,9 @@ export default function DashboardPage({ onLogout }: Props) {
                       </div>
                     </SortableHabitCard>
                   ))}
+                  {weekHabits.length === 0 && (
+                    <EmptyHabits message="No hay ningún hábito registrado." />
+                  )}
                 </div>
               )}
             </section>
@@ -864,9 +872,7 @@ export default function DashboardPage({ onLogout }: Props) {
             })}
 
             {todayHabits.length === 0 && (
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-6 text-center text-white/50">
-                No hay hábitos programados para hoy.
-              </div>
+              <EmptyHabits message="No hay hábitos programados para hoy." />
             )}
           </section>
         )}
