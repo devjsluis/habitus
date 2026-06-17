@@ -157,6 +157,7 @@ export default function DashboardPage({ onLogout }: Props) {
   const [editingHabitId, setEditingHabitId] = useState<string | null>(null);
   const isEditing = editingHabitId !== null;
   const [viewMode, setViewMode] = useState<"week" | "today">("week");
+  const [todayFilter, setTodayFilter] = useState<"all" | "pending">("pending");
   const [weekSortMode, setWeekSortMode] = useState<"manual" | "time">("time");
 
   const todayHabits = habits
@@ -168,6 +169,11 @@ export default function DashboardPage({ onLogout }: Props) {
 
       return a.reminderTime.localeCompare(b.reminderTime);
     });
+
+  const filteredTodayHabits =
+    todayFilter === "pending"
+      ? todayHabits.filter((habit) => !isCompleted(habit, today))
+      : todayHabits;
 
   const weekHabits =
     weekSortMode === "time"
@@ -334,12 +340,40 @@ export default function DashboardPage({ onLogout }: Props) {
           )}
 
           {viewMode === "today" && (
-            <div className="px-2">
-              <h2 className="text-2xl font-bold">Hoy</h2>
+            <div className="flex items-center justify-between px-2">
+              <div>
+                <h2 className="text-2xl font-bold">Hoy</h2>
 
-              <p className="text-sm text-white/45">
-                {dayjs(today).format("dddd D [de] MMMM")}
-              </p>
+                <p className="text-sm text-white/45">
+                  {dayjs(today).format("dddd D [de] MMMM")}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 rounded-xl bg-white/5 p-1 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setTodayFilter("all")}
+                  className={`rounded-lg px-3 py-1.5 font-medium ${
+                    todayFilter === "all"
+                      ? "bg-white/10 text-white"
+                      : "text-white/45"
+                  }`}
+                >
+                  Todas
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTodayFilter("pending")}
+                  className={`rounded-lg px-3 py-1.5 font-medium ${
+                    todayFilter === "pending"
+                      ? "bg-white/10 text-white"
+                      : "text-white/45"
+                  }`}
+                >
+                  Pendientes
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -830,7 +864,7 @@ export default function DashboardPage({ onLogout }: Props) {
 
           {viewMode === "today" && (
             <section className="space-y-3 p-2">
-              {todayHabits.map((habit) => {
+              {filteredTodayHabits.map((habit) => {
                 const completed = isCompleted(habit, today);
 
                 return (
@@ -890,8 +924,14 @@ export default function DashboardPage({ onLogout }: Props) {
                 );
               })}
 
-              {todayHabits.length === 0 && (
-                <EmptyHabits message="No hay hábitos programados para hoy." />
+              {filteredTodayHabits.length === 0 && (
+                <EmptyHabits
+                  message={
+                    todayFilter === "pending"
+                      ? "🎉 No tienes hábitos pendientes."
+                      : "No hay hábitos programados para hoy."
+                  }
+                />
               )}
             </section>
           )}
