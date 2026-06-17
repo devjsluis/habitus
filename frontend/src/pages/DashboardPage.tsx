@@ -504,7 +504,7 @@ export default function DashboardPage({ onLogout }: Props) {
                       setColor(c);
                       setIsColorPickerOpen(false);
                     }}
-                    className={`h-11 w-11 rounded-xl border transition ${
+                    className={`h-8 w-8 rounded-xl border transition ${
                       color === c ? "scale-110 border-white" : "border-white/10"
                     }`}
                     style={{ backgroundColor: c }}
@@ -560,26 +560,6 @@ export default function DashboardPage({ onLogout }: Props) {
             </div>
 
             <section className="space-y-3 p-2">
-              <div className="flex justify-end gap-2 px-4 text-center text-sm text-white/70">
-                <div />
-
-                {lastDays.map((date) => {
-                  const d = dayjs(date);
-
-                  return (
-                    <div
-                      key={date}
-                      className={`w-11 rounded-lg py-1 ${
-                        date === today ? "bg-purple-500/20 text-purple-300" : ""
-                      }`}
-                    >
-                      <div>{d.format("dd")}</div>
-                      <div className="font-semibold">{d.format("D")}</div>
-                    </div>
-                  );
-                })}
-              </div>
-
               <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                 <SortableContext
                   items={habits.map((habit) => habit.id)}
@@ -589,24 +569,45 @@ export default function DashboardPage({ onLogout }: Props) {
                     {habits.map((habit) => (
                       <SortableHabitCard key={habit.id} habit={habit}>
                         <div className="rounded-2xl border border-white/10 bg-black/40 py-5 shadow-lg">
-                          <div className="flex items-center px-4">
+                          <div className="space-y-4 px-4">
                             <button
                               type="button"
                               onClick={() => openEditModal(habit)}
-                              className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                              className="flex w-full items-center gap-3 text-left"
                             >
-                              <HabitIcon name={habit.icon} />
-                              <div className="min-w-0">
-                                <div className="truncate font-medium">
+                              <div
+                                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
+                                style={{ backgroundColor: `${habit.color}18` }}
+                              >
+                                <div className="grid h-5 w-5 place-items-center">
+                                  <HabitIcon name={habit.icon} />
+                                </div>
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="text-md font-medium leading-tight line-clamp-2">
                                   {habit.name}
                                 </div>
-                                <div className="truncate text-xs text-white/45">
+
+                                <div className="text-xs text-white/45">
                                   {getHabitScheduleText(habit)}
                                 </div>
                               </div>
                             </button>
 
-                            <div className="flex gap-2">
+                            <div className="grid grid-cols-5 gap-5 text-xs text-white/45">
+                              {lastDays.map((date) => {
+                                const d = dayjs(date);
+
+                                return (
+                                  <div key={date} className="text-center">
+                                    <div>{d.format("dd")}</div>
+                                    <div>{d.format("D")}</div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <div className="grid grid-cols-5 gap-5">
                               {lastDays.map((date) => {
                                 const completed = isCompleted(habit, date);
                                 const applies = doesHabitApplyOnDate(
@@ -626,7 +627,7 @@ export default function DashboardPage({ onLogout }: Props) {
                                       await toggleHabit(habit.id, date);
                                       await loadHabits();
                                     }}
-                                    className="h-11 w-11 rounded-lg border transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-25"
+                                    className="h-10 aspect-square w-full rounded-xl border transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-25"
                                     style={{
                                       backgroundColor: !applies
                                         ? "rgba(255,255,255,0.04)"
@@ -682,14 +683,16 @@ export default function DashboardPage({ onLogout }: Props) {
                       className="flex min-w-0 flex-1 items-center gap-3 text-left"
                     >
                       <div
-                        className="flex h-12 w-12 items-center justify-center rounded-xl"
+                        className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl"
                         style={{ backgroundColor: `${habit.color}18` }}
                       >
-                        <HabitIcon name={habit.icon} />
+                        <div className="grid h-6 w-6 place-items-center">
+                          <HabitIcon name={habit.icon} />
+                        </div>
                       </div>
 
                       <div className="min-w-0">
-                        <div className="truncate font-semibold">
+                        <div className="max-w-42.5 text-base sm:max-w-none line-clamp-5 font-semibold leading-tight">
                           {habit.name}
                         </div>
                         <div className="mt-1 flex items-center gap-2 text-xs text-white/45">
@@ -707,7 +710,7 @@ export default function DashboardPage({ onLogout }: Props) {
                         await toggleHabit(habit.id, today);
                         await loadHabits();
                       }}
-                      className="h-14 w-14 rounded-2xl border transition active:scale-95"
+                      className="h-16 w-16 shrink-0 rounded-2xl border transition active:scale-95"
                       style={{
                         backgroundColor: completed
                           ? `${habit.color}cc`
