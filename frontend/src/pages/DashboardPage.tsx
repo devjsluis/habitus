@@ -152,6 +152,12 @@ export default function DashboardPage({ onLogout }: Props) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const lastDays = getLastDays(5);
   const today = dayjs().format("YYYY-MM-DD");
+
+  const [editingHabitId, setEditingHabitId] = useState<string | null>(null);
+  const isEditing = editingHabitId !== null;
+  const [viewMode, setViewMode] = useState<"week" | "today">("week");
+  const [weekSortMode, setWeekSortMode] = useState<"manual" | "time">("time");
+
   const todayHabits = habits
     .filter((habit) => doesHabitApplyOnDate(habit, today))
     .sort((a, b) => {
@@ -161,9 +167,17 @@ export default function DashboardPage({ onLogout }: Props) {
 
       return a.reminderTime.localeCompare(b.reminderTime);
     });
-  const [editingHabitId, setEditingHabitId] = useState<string | null>(null);
-  const isEditing = editingHabitId !== null;
-  const [viewMode, setViewMode] = useState<"week" | "today">("week");
+
+  const weekHabits =
+    weekSortMode === "time"
+      ? [...habits].sort((a, b) => {
+          if (!a.reminderTime && !b.reminderTime) return 0;
+          if (!a.reminderTime) return 1;
+          if (!b.reminderTime) return -1;
+
+          return a.reminderTime.localeCompare(b.reminderTime);
+        })
+      : habits;
 
   function resetForm() {
     setName("");
@@ -555,106 +569,227 @@ export default function DashboardPage({ onLogout }: Props) {
 
         {viewMode === "week" && (
           <Fragment>
-            <div className="mb-4 grid grid-cols-[1fr_auto] items-center gap-3 px-4 text-center text-sm text-white/70">
+            {/* <div className="mb-4 grid grid-cols-[1fr_auto] items-center gap-3 px-4 text-center text-sm text-white/70">
               <div />
+            </div> */}
+
+            <div className="mb-3 flex items-center justify-between px-2">
+              <div className="ml-1">
+                <h2 className="text-2xl font-bold">Últimos 5 días</h2>
+                <p className="text-sm text-white/45">Progreso semanal</p>
+              </div>
+              <div className="grid grid-cols-2 rounded-xl bg-white/5 p-1 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setWeekSortMode("time")}
+                  className={`rounded-lg px-3 py-1.5 font-medium ${
+                    weekSortMode === "time"
+                      ? "bg-white/10 text-white"
+                      : "text-white/45"
+                  }`}
+                >
+                  Hora
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWeekSortMode("manual")}
+                  className={`rounded-lg px-3 py-1.5 font-medium ${
+                    weekSortMode === "manual"
+                      ? "bg-white/10 text-white"
+                      : "text-white/45"
+                  }`}
+                >
+                  Manual
+                </button>
+              </div>
             </div>
 
             <section className="space-y-3 p-2">
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                <SortableContext
-                  items={habits.map((habit) => habit.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-3">
-                    {habits.map((habit) => (
-                      <SortableHabitCard key={habit.id} habit={habit}>
-                        <div className="rounded-2xl border border-white/10 bg-black/40 py-5 shadow-lg">
-                          <div className="space-y-4 px-4">
-                            <button
-                              type="button"
-                              onClick={() => openEditModal(habit)}
-                              className="flex w-full items-center gap-3 text-left"
-                            >
-                              <div
-                                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
-                                style={{ backgroundColor: `${habit.color}18` }}
+              {weekSortMode === "manual" ? (
+                <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+                  <SortableContext
+                    items={weekHabits.map((habit) => habit.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {weekHabits.map((habit) => (
+                        <SortableHabitCard key={habit.id} habit={habit}>
+                          <div className="rounded-2xl border border-white/10 bg-black/40 py-5 shadow-lg">
+                            <div className="space-y-4 px-4">
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(habit)}
+                                className="flex w-full items-center gap-3 text-left"
                               >
-                                <div className="grid h-5 w-5 place-items-center">
-                                  <HabitIcon name={habit.icon} />
-                                </div>
-                              </div>
-
-                              <div className="min-w-0 flex-1">
-                                <div className="text-md font-medium leading-tight line-clamp-2">
-                                  {habit.name}
-                                </div>
-
-                                <div className="text-xs text-white/45">
-                                  {getHabitScheduleText(habit)}
-                                </div>
-                              </div>
-                            </button>
-
-                            <div className="grid grid-cols-5 gap-5 text-xs text-white/45">
-                              {lastDays.map((date) => {
-                                const d = dayjs(date);
-
-                                return (
-                                  <div key={date} className="text-center">
-                                    <div>{d.format("dd")}</div>
-                                    <div>{d.format("D")}</div>
+                                <div
+                                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
+                                  style={{
+                                    backgroundColor: `${habit.color}18`,
+                                  }}
+                                >
+                                  <div className="grid h-5 w-5 place-items-center">
+                                    <HabitIcon name={habit.icon} />
                                   </div>
-                                );
-                              })}
-                            </div>
-                            <div className="grid grid-cols-5 gap-5">
-                              {lastDays.map((date) => {
-                                const completed = isCompleted(habit, date);
-                                const applies = doesHabitApplyOnDate(
-                                  habit,
-                                  date,
-                                );
+                                </div>
 
-                                return (
-                                  <button
-                                    key={date}
-                                    disabled={!applies}
-                                    onClick={async (event) => {
-                                      event.stopPropagation();
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-md font-medium leading-tight line-clamp-2">
+                                    {habit.name}
+                                  </div>
 
-                                      if (!applies) return;
+                                  <div className="text-xs text-white/45">
+                                    {getHabitScheduleText(habit)}
+                                  </div>
+                                </div>
+                              </button>
 
-                                      await toggleHabit(habit.id, date);
-                                      await loadHabits();
-                                    }}
-                                    className="h-10 aspect-square w-full rounded-xl border transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-25"
-                                    style={{
-                                      backgroundColor: !applies
-                                        ? "rgba(255,255,255,0.04)"
-                                        : completed
-                                          ? `${habit.color}cc`
-                                          : `${habit.color}18`,
-                                      borderColor: !applies
-                                        ? "rgba(255,255,255,0.06)"
-                                        : completed
-                                          ? `${habit.color}dd`
-                                          : `${habit.color}30`,
-                                      boxShadow:
-                                        completed && applies
-                                          ? `0 0 12px ${habit.color}35`
-                                          : "none",
-                                    }}
-                                  />
-                                );
-                              })}
+                              <div className="grid grid-cols-5 gap-5 text-xs text-white/45">
+                                {lastDays.map((date) => {
+                                  const d = dayjs(date);
+
+                                  return (
+                                    <div key={date} className="text-center">
+                                      <div>{d.format("dd")}</div>
+                                      <div>{d.format("D")}</div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div className="grid grid-cols-5 gap-5">
+                                {lastDays.map((date) => {
+                                  const completed = isCompleted(habit, date);
+                                  const applies = doesHabitApplyOnDate(
+                                    habit,
+                                    date,
+                                  );
+
+                                  return (
+                                    <button
+                                      key={date}
+                                      disabled={!applies}
+                                      onClick={async (event) => {
+                                        event.stopPropagation();
+
+                                        if (!applies) return;
+
+                                        await toggleHabit(habit.id, date);
+                                        await loadHabits();
+                                      }}
+                                      className="h-10 aspect-square w-full rounded-xl border transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-25"
+                                      style={{
+                                        backgroundColor: !applies
+                                          ? "rgba(255,255,255,0.04)"
+                                          : completed
+                                            ? `${habit.color}cc`
+                                            : `${habit.color}18`,
+                                        borderColor: !applies
+                                          ? "rgba(255,255,255,0.06)"
+                                          : completed
+                                            ? `${habit.color}dd`
+                                            : `${habit.color}30`,
+                                        boxShadow:
+                                          completed && applies
+                                            ? `0 0 12px ${habit.color}35`
+                                            : "none",
+                                      }}
+                                    />
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
+                        </SortableHabitCard>
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                <div className="space-y-3">
+                  {weekHabits.map((habit) => (
+                    <SortableHabitCard key={habit.id} habit={habit}>
+                      <div className="rounded-2xl border border-white/10 bg-black/40 py-5 shadow-lg">
+                        <div className="space-y-4 px-4">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(habit)}
+                            className="flex w-full items-center gap-3 text-left"
+                          >
+                            <div
+                              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
+                              style={{ backgroundColor: `${habit.color}18` }}
+                            >
+                              <div className="grid h-5 w-5 place-items-center">
+                                <HabitIcon name={habit.icon} />
+                              </div>
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="text-md font-medium leading-tight line-clamp-2">
+                                {habit.name}
+                              </div>
+
+                              <div className="text-xs text-white/45">
+                                {getHabitScheduleText(habit)}
+                              </div>
+                            </div>
+                          </button>
+
+                          <div className="grid grid-cols-5 gap-5 text-xs text-white/45">
+                            {lastDays.map((date) => {
+                              const d = dayjs(date);
+
+                              return (
+                                <div key={date} className="text-center">
+                                  <div>{d.format("dd")}</div>
+                                  <div>{d.format("D")}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="grid grid-cols-5 gap-5">
+                            {lastDays.map((date) => {
+                              const completed = isCompleted(habit, date);
+                              const applies = doesHabitApplyOnDate(habit, date);
+
+                              return (
+                                <button
+                                  key={date}
+                                  disabled={!applies}
+                                  onClick={async (event) => {
+                                    event.stopPropagation();
+
+                                    if (!applies) return;
+
+                                    await toggleHabit(habit.id, date);
+                                    await loadHabits();
+                                  }}
+                                  className="h-10 aspect-square w-full rounded-xl border transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-25"
+                                  style={{
+                                    backgroundColor: !applies
+                                      ? "rgba(255,255,255,0.04)"
+                                      : completed
+                                        ? `${habit.color}cc`
+                                        : `${habit.color}18`,
+                                    borderColor: !applies
+                                      ? "rgba(255,255,255,0.06)"
+                                      : completed
+                                        ? `${habit.color}dd`
+                                        : `${habit.color}30`,
+                                    boxShadow:
+                                      completed && applies
+                                        ? `0 0 12px ${habit.color}35`
+                                        : "none",
+                                  }}
+                                />
+                              );
+                            })}
+                          </div>
                         </div>
-                      </SortableHabitCard>
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
+                      </div>
+                    </SortableHabitCard>
+                  ))}
+                </div>
+              )}
             </section>
           </Fragment>
         )}
